@@ -9,20 +9,27 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Git
+        run: |
+          choco install git
+          RefreshEnv.cmd
       - name: Install Hugging Face CLI
-        run: pip install huggingface-cli
+        run: |
+          pip install huggingface-cli
+          set PATH=C:\Users\runneradmin\AppData\Roaming\Python\Python39\Scripts;%PATH%
       - name: Configure Hugging Face CLI
-        run: huggingface-cli login
-        env:
+        run: |
+          huggingface-cli login
+          env:
             HF_TOKEN: ${{ secrets.HF_TOKEN }}
       - name: Push to hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MODEL_NAME: Books-Recommendation
         run: |
-          huggingface-cli repo create Books-Recommendation
-          cd Books-Recommendation
-          git remote add hf https://SaniyaBubere:$HF_TOKEN@huggingface.co/spaces/SaniyaBubere/Books-Recommendation
+          huggingface-cli repo create $MODEL_NAME
+          cd $MODEL_NAME
+          git remote add hf https://SaniyaBubere:$HF_TOKEN@huggingface.co/spaces/SaniyaBubere/$MODEL_NAME
           git push hf main
           cd ..
-          rm -rf Books-Recommendation
-        env:
-            HF_TOKEN: ${{ secrets.HF_TOKEN }}
-            MODEL_NAME: Books-Recommendation
+          rd /s /q $MODEL_NAME
