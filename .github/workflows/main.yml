@@ -4,17 +4,25 @@ on:
   push:
     branches: [main]
 
-  # to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
   sync-to-hub:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - name: Install Hugging Face CLI
+        run: pip install huggingface-cli
+      - name: Configure Hugging Face CLI
+        run: huggingface-cli login
+          env:
+            HF_TOKEN: ${{ secrets.HF_TOKEN }}
       - name: Push to hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://SaniyaBubere:$HF_TOKEN@huggingface.co/spaces/SaniyaBubere/Books-Recommendation main
+        run: |
+          huggingface-cli repo create Books-Recommendation
+          cd Books-Recommendation
+          git remote add hf https://SaniyaBubere:$HF_TOKEN@huggingface.co/spaces/SaniyaBubere/Books-Recommendation
+          git push hf main
+          cd ..
+          rm -rf Books-Recommendation
+          env:
+            HF_TOKEN: ${{ secrets.HF_TOKEN }}
+            MODEL_NAME: Books-Recommendation
